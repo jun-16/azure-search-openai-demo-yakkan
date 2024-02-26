@@ -55,6 +55,9 @@
     },
     "useApplicationInsights": {
       "value": "${AZURE_USE_APPLICATION_INSIGHTS=false}"
+    },
+    "storageContainerName": {
+      "value": "${AZURE_STORAGE_CONTAINER=content}"
     }
   }
 }

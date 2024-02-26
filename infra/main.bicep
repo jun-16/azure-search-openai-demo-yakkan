@@ -25,7 +25,7 @@ param searchIndexName string // Set in main.parameters.json
 param storageAccountName string = ''
 param storageResourceGroupName string = ''
 param storageResourceGroupLocation string = location
-param storageContainerName string = 'content'
+param storageContainerName string // Set in main.parameters.json
 
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''

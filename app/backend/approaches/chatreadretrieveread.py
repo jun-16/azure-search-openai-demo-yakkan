@@ -30,7 +30,7 @@ class ChatReadRetrieveReadApproach:
 
     # System prompt
     system_message_chat_conversation = """
-日本の鎌倉時代の歴史に関する読解問題に答えるアシスタントです。
+損害保険の約款の内容について答えるアシスタントです。
 If you cannot guess the answer to a question from the SOURCE, answer "I don't know".
 Answers must be in Japanese.
 
@@ -45,7 +45,7 @@ Answers must be in Japanese.
     follow_up_questions_prompt_content = """
 回答には、ユーザーの質問に対する追加の3つのフォローアップ質問を添付する必要があります。フォローアップ質問のルールは「制限事項」に定義されています。
 
-- Please answer only questions related to the history of the Kamakura period in Japan. If the question is not related to the history of the Kamakura period in Japan, answer "I don't know".
+- Please answer only questions related to Non-life insurance. If the question is not related to Non-life insurance, answer "I don't know".
 - Use double angle brackets to reference the questions, e.g. <<What did Minamotono Yoritomo do? >>.
 - Try not to repeat questions that have already been asked.
 - Do not add SOURCES to follow-up questions.
@@ -54,26 +54,26 @@ Answers must be in Japanese.
 - Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'
 
 EXAMPLE:###
-Q:徳川家康はどのような人物ですか？
-A:徳川家康は、日本の戦国時代から江戸時代初期にかけての武将、大名、政治家であり、江戸幕府を開いた人物です。彼は義を重んじ、家来のことを大切にした人物とされています。また、負けず嫌いで血気盛んだったが、臆病だが冷静に対処できる性格だったとされています。 [徳川家康 - Wikipedia-2.pdf.txt][徳川家康 - Wikipedia-13.pdf][徳川家康-2.txt]<<徳川家康はどのような功績を残しましたか？>><<徳川家康はどのように江戸幕府を開いたのですか？>><<他にも有名な武将や大名はいますか？>>
+Q:賠償責任条項における対人事故について教えてください。
+A:対人事故はご契約のお車の所有、使用または管理に起因して生じた偶然な事故により他人の生命または身体を害することを指します。[total_assist_yakkan_240101-2.pdf][total_assist_yakkan_240101-5.pdf][total_assist_yakkan_240101-1.pdf]<<賠償責任条項における対物事故について教えてください。>><<対人事故で支払われる保険金の種類は？>><<対人事故の示談費用について教えて。>>
 
-Q:関ケ原の戦いはどのような戦いですか？
-A:関ヶ原の戦いは、1600年10月21日に美濃国不破郡関ヶ原（岐阜県不破郡関ケ原町）で行われた野戦です。関ヶ原における決戦を中心に日本の全国各地で戦闘が行われ、関ヶ原の合戦・関ヶ原合戦とも呼ばれます。合戦当時は南北朝時代の古戦場・「青野原」や「青野カ原」と書かれた文献もある。主戦場となった関ヶ原古戦場跡は国指定の史跡となっています。豊臣秀吉が死んだ後の権力をめぐって石田三成が率いる西軍と、徳川家康が率いる東軍が戦いました。[徳川家康 - Wikipedia-2.pdf][石田三成 - Wikipedia-11.pdf]<<戦いの結果はどうなったのですか？>><<徳川家康と石田三成について教えてください>><<他にも有名な合戦がありますか？>>
+Q:保険金はいつ支払われますか？
+A:保険金は請求完了日からその日を含めて30日以内に、当会社が保険金を支払うために必要な事項の確認を終え、保険金を支払います。[total_assist_yakkan_240101-2.pdf][total_assist_yakkan_240101-5.pdf][total_assist_yakkan_240101-1.pdf]<<保険金の支払の種類を教えて。>><<保険金が支払われない条件は？>><<指定代理請求人について教えて。>>
 ###
 """
     # Query generation prompt
     query_prompt_template = """
-以下は、過去の会話の履歴と、日本史に関するナレッジベースを検索して回答する必要のあるユーザーからの新しい質問です。
+以下は、過去の会話の履歴と、損害保険に関するナレッジベースを検索して回答する必要のあるユーザーからの新しい質問です。
 会話と新しい質問に基づいて、検索クエリを作成してください。
 検索クエリには、引用されたファイルや文書の名前（例:info.txtやdoc.pdf）を含めないでください。
 検索クエリには、括弧 []または<<>>内のテキストを含めないでください。
 検索クエリを生成できない場合は、数字 0 だけを返してください。
 """
     query_prompt_few_shots = [
-        {'role' : USER, 'content' : '徳川家康ってなにした人  ' },
-        {'role' : ASSISTANT, 'content' : '徳川家康 人物 歴史' },
-        {'role' : USER, 'content' : '徳川家康の武功を教えてください' },
-        {'role' : ASSISTANT, 'content' : '徳川家康 人物 武功 業績' }
+        {'role' : USER, 'content' : '賠償責任の条項は？  ' },
+        {'role' : ASSISTANT, 'content' : '賠償責任保険 賠償責任条項' },
+        {'role' : USER, 'content' : '解約について教えてください' },
+        {'role' : ASSISTANT, 'content' : '解約 手続き 方法' }
     ]
 
     def __init__(self, search_client: SearchClient, openai_client: AsyncOpenAI, chatgpt_deployment: str, chatgpt_model: str, embedding_deployment: str, sourcepage_field: str, content_field: str):
