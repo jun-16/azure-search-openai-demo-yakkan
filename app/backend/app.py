@@ -143,9 +143,10 @@ async def chat_stream():
     if not request.is_json:
         return jsonify({"error": "request must be json"}), 415
     request_json = await request.get_json()
-    approach = request_json["approach"]
+    # approach = request_json["approach"]
+    insurance = request_json["insurance"]
     try:
-        impl = current_app.config[CONFIG_CHAT_APPROACHES].get(approach)
+        impl = current_app.config[CONFIG_CHAT_APPROACHES].get(insurance)
         if not impl:
             return jsonify({"error": "unknown approach"}), 400
         response_generator = impl.run_with_streaming(request_json["history"], request_json.get("overrides", {}))

@@ -18,7 +18,7 @@ const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [promptTemplate, setPromptTemplate] = useState<string>("");
     const [retrieveCount, setRetrieveCount] = useState<number>(3);
-    const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>(RetrievalMode.Text);
+    const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>(RetrievalMode.Hybrid);
     const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(false);
     const [shouldStream, setShouldStream] = useState<boolean>(false);
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
@@ -216,8 +216,8 @@ const Chat = () => {
                     {/* {!lastQuestionRef.current ? ( */}
                         <div className={styles.chatEmptyState}>
                             <SparkleFilled fontSize={"120px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
-                            <h1 className={styles.chatEmptyStateTitle}>やっかんボット</h1>
-                            <h2 className={styles.chatEmptyStateSubtitle}>保険商品を選択し質問をしてください。</h2>
+                            <h1 className={styles.chatEmptyStateTitle}>やっかんチャットボット</h1>
+                            <h2 className={styles.chatEmptyStateSubtitle}>保険商品を選んで質問をしてください</h2>
                             <Dropdown
                                 className={styles.chatSettingsSeparator}
                                 // label="保険商品"
