@@ -14,7 +14,7 @@ const Layout = () => {
                     </Link>
                     <nav>
                         <ul className={styles.headerNavList}>
-                            <li>
+                            {/* <li>
                                 <NavLink to="/" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     チャット
                                 </NavLink>
@@ -23,7 +23,7 @@ const Layout = () => {
                                 <NavLink to="/qa" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     一問一答
                                 </NavLink>
-                            </li>
+                            </li> */}
                             <li className={styles.headerNavLeftMargin}>
                                 <a href="https://aka.ms/entgptsearch" target={"_blank"} title="Github repository link">
                                     <img

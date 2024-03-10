@@ -5,7 +5,7 @@ import readNDJSONStream from "ndjson-readablestream";
 
 import styles from "./Chat.module.css";
 
-import { chatApi, RetrievalMode, Approaches, AskResponse, ChatRequest, ChatTurn, ChatgptModel } from "../../api";
+import { chatApi, RetrievalMode, Approaches, AskResponse, ChatRequest, ChatTurn, ChatgptModel, Insurance } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { ExampleList } from "../../components/Example";
@@ -25,6 +25,7 @@ const Chat = () => {
     const [excludeCategory, setExcludeCategory] = useState<string>("");
     const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
     const [chatgptModel, setChatgptModel] = useState<ChatgptModel>(ChatgptModel.Gpt4);
+    const [insurance, setInsurance] = useState<Insurance>(Insurance.TotalAssist);
 
     const lastQuestionRef = useRef<string>("");
     const chatMessageStreamEnd = useRef<HTMLDivElement | null>(null);
@@ -87,7 +88,8 @@ const Chat = () => {
             const history: ChatTurn[] = answers.map(a => ({ user: a[0], bot: a[1].answer }));
             const request: ChatRequest = {
                 history: [...history, { user: question, bot: undefined }],
-                approach: Approaches.ReadRetrieveRead,
+                // approach: Approaches.ReadRetrieveRead,
+                insurance: insurance,
                 shouldStream: shouldStream,
                 overrides: {
                     promptTemplate: promptTemplate.length === 0 ? undefined : promptTemplate,
@@ -197,6 +199,12 @@ const Chat = () => {
         setChatgptModel(option?.data || ChatgptModel.Gpt4);
     };
 
+    const onInsuranceChange = (_ev: React.FormEvent<HTMLDivElement>, option?: IDropdownOption<Insurance> | undefined, index?: number | undefined) => {
+        setInsurance(option?.data || Insurance.TotalAssist);
+        clearChat();
+    };
+    
+
     return (
         <div className={styles.container}>
             <div className={styles.commandsContainer}>
@@ -205,14 +213,25 @@ const Chat = () => {
             </div>
             <div className={styles.chatRoot}>
                 <div className={styles.chatContainer}>
-                    {!lastQuestionRef.current ? (
+                    {/* {!lastQuestionRef.current ? ( */}
                         <div className={styles.chatEmptyState}>
                             <SparkleFilled fontSize={"120px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
-                            <h1 className={styles.chatEmptyStateTitle}>Chat with your data</h1>
-                            <h2 className={styles.chatEmptyStateSubtitle}>Ask anything or try an example</h2>
+                            <h1 className={styles.chatEmptyStateTitle}>やっかんボット</h1>
+                            <h2 className={styles.chatEmptyStateSubtitle}>保険商品を選択し質問をしてください。</h2>
+                            <Dropdown
+                                className={styles.chatSettingsSeparator}
+                                // label="保険商品"
+                                options={[
+                                    { key: "total-assist", text: "トータルアシスト自動車保険", selected: insurance == Insurance.TotalAssist, data: Insurance.TotalAssist },
+                                    { key: "cho-hoken", text: "トータルアシスト超保険", selected: insurance == Insurance.ChoHoken, data: Insurance.ChoHoken },
+                                    { key: "jishin", text: "地震保険", selected: insurance == Insurance.Jishin, data: Insurance.Jishin },
+                                    { key: "e-quick", text: "EQuick保険", selected: insurance == Insurance.EQuick, data: Insurance.EQuick },
+                                ]}
+                                onChange={onInsuranceChange}
+                            />
                             <ExampleList onExampleClicked={onExampleClicked} />
                         </div>
-                    ) : (
+                    {/* ) : ( */}
                         <div className={styles.chatMessageStream}>
                             {isStreaming &&
                                 streamedAnswers.map((streamedAnswer, index) => (
@@ -270,7 +289,7 @@ const Chat = () => {
                             ) : null}
                             <div ref={chatMessageStreamEnd} />
                         </div>
-                    )}
+                    {/* )} */}
 
                     <div className={styles.chatInput}>
                         <QuestionInput clearOnSend placeholder="こちらに質問をどうぞ" disabled={isLoading} onSend={question => makeApiRequest(question)} />

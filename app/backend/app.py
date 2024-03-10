@@ -55,6 +55,10 @@ CONFIG_ASK_APPROACHES = "ask_approaches"
 CONFIG_CHAT_APPROACHES = "chat_approaches"
 CONFIG_BLOB_CLIENT = "blob_client"
 CONFIG_SEARCH_CLIENT = "search_client"
+CONFIG_SEARCH_CLIENT_TOTAL_ASSIST = "search_client_total_assist"
+CONFIG_SEARCH_CLIENT_CHO_HOKEN = "search_client_cho_hoken"
+CONFIG_SEARCH_CLIENT_JISHIN = "search_client_jishin"
+CONFIG_SEARCH_CLIENT_E_QUICK = "search_client_e_quick"
 CONFIG_OPENAI_CLIENT = "openai_client"
 APPLICATIONINSIGHTS_CONNECTION_STRING = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
 
@@ -116,9 +120,11 @@ async def chat():
     if not request.is_json:
         return jsonify({"error": "request must be json"}), 415
     request_json = await request.get_json()
-    approach = request_json["approach"]
+    # approach = request_json["approach"]
+    insurance = request_json["insurance"]
+    print("insurance:", insurance)
     try:
-        impl = current_app.config[CONFIG_CHAT_APPROACHES].get(approach)
+        impl = current_app.config[CONFIG_CHAT_APPROACHES].get(insurance)
         if not impl:
             return jsonify({"error": "unknown approach"}), 400
         r = await impl.run_without_streaming(request_json["history"], request_json.get("overrides", {}))
@@ -175,6 +181,22 @@ async def setup_clients():
         endpoint=f"https://{AZURE_SEARCH_SERVICE}.search.windows.net",
         index_name=AZURE_SEARCH_INDEX,
         credential=azure_credential)
+    search_client_total_assist = SearchClient(
+        endpoint=f"https://{AZURE_SEARCH_SERVICE}.search.windows.net",
+        index_name="total-assist",
+        credential=azure_credential)
+    search_client_cho_hoken = SearchClient(
+        endpoint=f"https://{AZURE_SEARCH_SERVICE}.search.windows.net",
+        index_name="cho-hoken",
+        credential=azure_credential)
+    search_client_jishin = SearchClient(
+        endpoint=f"https://{AZURE_SEARCH_SERVICE}.search.windows.net",
+        index_name="jishin",
+        credential=azure_credential)
+    search_client_e_quick = SearchClient(
+        endpoint=f"https://{AZURE_SEARCH_SERVICE}.search.windows.net",
+        index_name="e-quick",
+        credential=azure_credential)
     blob_client = BlobServiceClient(
         account_url=f"https://{AZURE_STORAGE_ACCOUNT}.blob.core.windows.net",
         credential=azure_credential)
@@ -211,6 +233,10 @@ async def setup_clients():
     current_app.config[CONFIG_BLOB_CLIENT] = blob_client
     current_app.config[CONFIG_OPENAI_CLIENT] = openai_client
     current_app.config[CONFIG_SEARCH_CLIENT] = search_client
+    current_app.config[CONFIG_SEARCH_CLIENT_TOTAL_ASSIST] = search_client_total_assist
+    current_app.config[CONFIG_SEARCH_CLIENT_CHO_HOKEN] = search_client_cho_hoken
+    current_app.config[CONFIG_SEARCH_CLIENT_JISHIN] = search_client_jishin
+    current_app.config[CONFIG_SEARCH_CLIENT_E_QUICK] = search_client_e_quick
     # GPTと外部の知識を統合するための様々なアプローチ。ほとんどのアプリケーションは、これらのパターンのうちの1つ、あるいは派生したものを使うでしょう。
     # このサンプルでは ReadDecomposeAsk 機能は ChatGPT プラグイン機能に代替しました。
     current_app.config[CONFIG_ASK_APPROACHES] = {
@@ -242,8 +268,35 @@ async def setup_clients():
         )
     }
     current_app.config[CONFIG_CHAT_APPROACHES] = {
-        "rrr": ChatReadRetrieveReadApproach(
-            search_client,
+        "total-assist": ChatReadRetrieveReadApproach(
+            search_client_total_assist,
+            openai_client,
+            AZURE_OPENAI_CHATGPT_DEPLOYMENT,
+            AZURE_OPENAI_CHATGPT_MODEL,
+            AZURE_OPENAI_EMB_DEPLOYMENT,
+            KB_FIELDS_SOURCEPAGE,
+            KB_FIELDS_CONTENT,
+        ),
+        "cho-hoken": ChatReadRetrieveReadApproach(
+            search_client_cho_hoken,
+            openai_client,
+            AZURE_OPENAI_CHATGPT_DEPLOYMENT,
+            AZURE_OPENAI_CHATGPT_MODEL,
+            AZURE_OPENAI_EMB_DEPLOYMENT,
+            KB_FIELDS_SOURCEPAGE,
+            KB_FIELDS_CONTENT,
+        ),
+        "jishin": ChatReadRetrieveReadApproach(
+            search_client_jishin,
+            openai_client,
+            AZURE_OPENAI_CHATGPT_DEPLOYMENT,
+            AZURE_OPENAI_CHATGPT_MODEL,
+            AZURE_OPENAI_EMB_DEPLOYMENT,
+            KB_FIELDS_SOURCEPAGE,
+            KB_FIELDS_CONTENT,
+        ),
+        "e-quick": ChatReadRetrieveReadApproach(
+            search_client_e_quick,
             openai_client,
             AZURE_OPENAI_CHATGPT_DEPLOYMENT,
             AZURE_OPENAI_CHATGPT_MODEL,
@@ -251,6 +304,15 @@ async def setup_clients():
             KB_FIELDS_SOURCEPAGE,
             KB_FIELDS_CONTENT,
         )
+        # "rrr": ChatReadRetrieveReadApproach(
+        #     search_client,
+        #     openai_client,
+        #     AZURE_OPENAI_CHATGPT_DEPLOYMENT,
+        #     AZURE_OPENAI_CHATGPT_MODEL,
+        #     AZURE_OPENAI_EMB_DEPLOYMENT,
+        #     KB_FIELDS_SOURCEPAGE,
+        #     KB_FIELDS_CONTENT,
+        # )
         # "rrr": ChatReadRetrieveReadApproachCosmosDB (
         #     search_client,
         #     openai_client,
@@ -266,6 +328,10 @@ async def setup_clients():
 @bp.after_app_serving
 async def close_clients():
     await current_app.config[CONFIG_SEARCH_CLIENT].close()
+    await current_app.config[CONFIG_SEARCH_CLIENT_TOTAL_ASSIST].close()
+    await current_app.config[CONFIG_SEARCH_CLIENT_CHO_HOKEN].close()
+    await current_app.config[CONFIG_SEARCH_CLIENT_JISHIN].close()
+    await current_app.config[CONFIG_SEARCH_CLIENT_E_QUICK].close()
     await current_app.config[CONFIG_OPENAI_CLIENT].close()
     await current_app.config[CONFIG_CREDENTIAL].close()
 

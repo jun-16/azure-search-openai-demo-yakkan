@@ -16,6 +16,13 @@ export const enum ChatgptModel {
     Gpt4 = "gpt-4"
 }
 
+export const enum Insurance {
+    TotalAssist = "total-assist",
+    ChoHoken = "cho-hoken",
+    Jishin = "jishin",
+    EQuick = "e-quick"
+}
+
 export type AskRequestOverrides = {
     retrievalMode?: RetrievalMode;
     semanticRanker?: boolean;
@@ -28,11 +35,13 @@ export type AskRequestOverrides = {
     promptTemplateSuffix?: string;
     suggestFollowupQuestions?: boolean;
     chatgptModel?: ChatgptModel;
+    insurance?: Insurance;
 };
 
 export type AskRequest = {
     question: string;
-    approach: Approaches;
+    // approach: Approaches;
+    insurance: Insurance,
     overrides?: AskRequestOverrides;
 };
 
@@ -50,7 +59,8 @@ export type ChatTurn = {
 
 export type ChatRequest = {
     history: ChatTurn[];
-    approach: Approaches;
+    // approach: Approaches;
+    insurance: Insurance,
     overrides?: AskRequestOverrides;
     shouldStream?: boolean;
 };

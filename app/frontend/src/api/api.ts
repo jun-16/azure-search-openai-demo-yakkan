@@ -8,7 +8,8 @@ export async function askApi(options: AskRequest): Promise<AskResponse> {
         },
         body: JSON.stringify({
             question: options.question,
-            approach: options.approach,
+            // approach: options.approach,
+            insurance: options.insurance,
             overrides: {
                 retrieval_mode: options.overrides?.retrievalMode,
                 semantic_ranker: options.overrides?.semanticRanker,
@@ -19,7 +20,7 @@ export async function askApi(options: AskRequest): Promise<AskResponse> {
                 prompt_template_prefix: options.overrides?.promptTemplatePrefix,
                 prompt_template_suffix: options.overrides?.promptTemplateSuffix,
                 exclude_category: options.overrides?.excludeCategory,
-                chatgpt_model: options.overrides?.chatgptModel 
+                chatgpt_model: options.overrides?.chatgptModel,
             }
         })
     });
@@ -41,7 +42,8 @@ export async function chatApi(options: ChatRequest): Promise<Response> {
         },
         body: JSON.stringify({
             history: options.history,
-            approach: options.approach,
+            // approach: options.approach,
+            insurance: options.insurance,
             overrides: {
                 retrieval_mode: options.overrides?.retrievalMode,
                 semantic_ranker: options.overrides?.semanticRanker,
@@ -53,7 +55,7 @@ export async function chatApi(options: ChatRequest): Promise<Response> {
                 prompt_template_suffix: options.overrides?.promptTemplateSuffix,
                 exclude_category: options.overrides?.excludeCategory,
                 suggest_followup_questions: options.overrides?.suggestFollowupQuestions,
-                chatgpt_model: options.overrides?.chatgptModel 
+                chatgpt_model: options.overrides?.chatgptModel
             }
         })
     });
