@@ -297,20 +297,11 @@ def create_search_index():
                     )
                 ]
             ),
-            # semantic_settings=SemanticSearch(
-            #     configurations=[SemanticConfiguration(
-            #         name='default',
-            #         prioritized_fields=SemanticPrioritizedFields(
-            #             title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))]),
-            #     vector_search=VectorSearch(
-            #         algorithm_configurations=[
-            #             VectorSearchAlgorithmConfiguration(
-            #                 name="default",
-            #                 kind="hnsw",
-            #                 hnsw_parameters=HnswParameters(metric="cosine")
-            #             )
-            #         ]
-            #     )
+            semantic_search=SemanticSearch(
+                configurations=[SemanticConfiguration(
+                    name='default',
+                    prioritized_fields=SemanticPrioritizedFields(
+                        title_field=None, content_fields=[SemanticField(field_name='content')]))]),
             )
 
         if args.verbose: logging.info(f"Creating {args.index} search index")
