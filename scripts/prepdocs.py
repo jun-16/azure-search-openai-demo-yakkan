@@ -17,17 +17,21 @@ from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import (
     HnswParameters,
-    PrioritizedFields,
+    # PrioritizedFields,
+    SemanticPrioritizedFields,
     SearchableField,
     SearchField,
     SearchFieldDataType,
     SearchIndex,
     SemanticConfiguration,
     SemanticField,
-    SemanticSettings,
+    # SemanticSettings,
+    SemanticSearch,
     SimpleField,
     VectorSearch,
-    VectorSearchAlgorithmConfiguration,
+    # VectorSearchAlgorithmConfiguration,
+    HnswAlgorithmConfiguration,
+    VectorSearchProfile,
 )
 from azure.storage.blob import BlobServiceClient
 from pypdf import PdfReader, PdfWriter
@@ -49,6 +53,9 @@ SUPPORTED_BATCH_AOAI_MODEL = {
         'max_batch_size' : 16
     }
 }
+
+AZURE_SEARCH_API_VERSION = "2023-11-01"
+AZURE_OPENAI_API_VERSION = "2024-02-15-preview"
 
 def calculate_tokens_emb_aoai(input: str):
     encoding = tiktoken.encoding_for_model(args.openaimodelname)
@@ -257,7 +264,8 @@ def compute_embedding_in_batch(texts):
 def create_search_index():
     if args.verbose: logging.info(f"Ensuring search index {args.index} exists")
     index_client = SearchIndexClient(endpoint=f"https://{args.searchservice}.search.windows.net/",
-                                     credential=search_creds)
+                                     credential=search_creds,
+                                     api_version=AZURE_SEARCH_API_VERSION)
     if args.index not in index_client.list_index_names():
         index = SearchIndex(
             name=args.index,
@@ -266,26 +274,45 @@ def create_search_index():
                 SearchableField(name="content", type="Edm.String", analyzer_name="ja.lucene"),
                 SearchField(name="embedding", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
                             hidden=False, searchable=True, filterable=False, sortable=False, facetable=False,
-                            vector_search_dimensions=1536, vector_search_configuration="default"),
+                            vector_search_dimensions=1536, vector_search_profile_name="my-default-vector-profile"),
                 SimpleField(name="category", type="Edm.String", filterable=True, facetable=True),
                 SimpleField(name="sourcepage", type="Edm.String", filterable=True, facetable=True),
                 SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True)
             ],
-            semantic_settings=SemanticSettings(
-                configurations=[SemanticConfiguration(
-                    name='default',
-                    prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))]),
-                vector_search=VectorSearch(
-                    algorithm_configurations=[
-                        VectorSearchAlgorithmConfiguration(
-                            name="default",
-                            kind="hnsw",
-                            hnsw_parameters=HnswParameters(metric="cosine")
-                        )
-                    ]
-                )
+            vector_search=VectorSearch(
+                algorithms=[
+                    # VectorSearchAlgorithmConfiguration(
+                    #     name="my-hnsw-config-1",
+                    #     kind="hnsw",
+                    #     hnsw_parameters=HnswParameters(metric="cosine")
+                    # )
+                    HnswAlgorithmConfiguration(
+                        name="my-hnsw-config-1"
+                    )
+                ],
+                profiles=[
+                    VectorSearchProfile(
+                        name="my-default-vector-profile",
+                        algorithm_configuration_name="my-hnsw-config-1"
+                    )
+                ]
+            ),
+            # semantic_settings=SemanticSearch(
+            #     configurations=[SemanticConfiguration(
+            #         name='default',
+            #         prioritized_fields=SemanticPrioritizedFields(
+            #             title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))]),
+            #     vector_search=VectorSearch(
+            #         algorithm_configurations=[
+            #             VectorSearchAlgorithmConfiguration(
+            #                 name="default",
+            #                 kind="hnsw",
+            #                 hnsw_parameters=HnswParameters(metric="cosine")
+            #             )
+            #         ]
+            #     )
             )
+
         if args.verbose: logging.info(f"Creating {args.index} search index")
         index_client.create_index(index)
     else:
@@ -324,7 +351,8 @@ def index_sections(filename, sections):
     if args.verbose: logging.info(f"Indexing sections from '{filename}' into search index '{args.index}'")
     search_client = SearchClient(endpoint=f"https://{args.searchservice}.search.windows.net/",
                                     index_name=args.index,
-                                    credential=search_creds)
+                                    credential=search_creds,
+                                    api_version=AZURE_SEARCH_API_VERSION)
     i = 0
     batch = []
     for s in sections:
@@ -345,7 +373,8 @@ def remove_from_index(filename):
     if args.verbose: logging.info(f"Removing sections from '{filename or '<all>'}' from search index '{args.index}'")
     search_client = SearchClient(endpoint=f"https://{args.searchservice}.search.windows.net/",
                                     index_name=args.index,
-                                    credential=search_creds)
+                                    credential=search_creds,
+                                    api_version=AZURE_SEARCH_API_VERSION)
     while True:
         filter = None if filename is None else f"sourcefile eq '{os.path.basename(filename)}'"
         r = search_client.search("", filter=filter, top=1000, include_total_count=True)
@@ -448,7 +477,7 @@ if __name__ == "__main__":
             openai.api_key = args.openaikey
 
         openai.api_base = f"https://{args.openaiservice}.openai.azure.com"
-        openai.api_version = "2022-12-01"
+        openai.api_version = AZURE_OPENAI_API_VERSION
 
     if args.removeall:
         remove_blobs(None)
