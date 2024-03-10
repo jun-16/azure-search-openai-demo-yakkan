@@ -11,6 +11,11 @@ export const enum RetrievalMode {
     Text = "text"
 }
 
+export const enum ChatgptModel {
+    Gpt35 = "gpt-35-turbo-16k",
+    Gpt4 = "gpt-4"
+}
+
 export type AskRequestOverrides = {
     retrievalMode?: RetrievalMode;
     semanticRanker?: boolean;
@@ -22,6 +27,7 @@ export type AskRequestOverrides = {
     promptTemplatePrefix?: string;
     promptTemplateSuffix?: string;
     suggestFollowupQuestions?: boolean;
+    chatgptModel?: ChatgptModel;
 };
 
 export type AskRequest = {

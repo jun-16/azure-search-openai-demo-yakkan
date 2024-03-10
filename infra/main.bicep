@@ -46,10 +46,18 @@ param formRecognizerResourceGroupLocation string = location
 
 param formRecognizerSkuName string = 'S0'
 
-param chatGptDeploymentName string // Set in main.parameters.json
-param chatGptDeploymentCapacity int = 30
-param chatGptModelName string = 'gpt-35-turbo-16k'
-param chatGptModelVersion string = '0613'
+// param chatGptDeploymentName string // Set in main.parameters.json
+// param chatGptDeploymentCapacity int = 30
+// param chatGptModelName string = 'gpt-35-turbo-16k'
+// param chatGptModelVersion string = '0613'
+param chatGptDeploymentNameV35 string = 'gpt-35-turbo-16k'
+param chatGptDeploymentCapacityV35 int = 30
+param chatGptModelNameV35 string = 'gpt-35-turbo-16k'
+param chatGptModelVersionV35 string = '0613'
+param chatGptDeploymentNameV4 string = 'gpt-4'
+param chatGptDeploymentCapacityV4 int = 30
+param chatGptModelNameV4 string = 'gpt-4'
+param chatGptModelVersionV4 string = 'vision-preview'
 param embeddingDeploymentName string = 'embedding'
 param embeddingDeploymentCapacity int = 30
 param embeddingModelName string = 'text-embedding-ada-002'
@@ -136,8 +144,8 @@ module backend 'core/host/appservice.bicep' = {
       AZURE_OPENAI_SERVICE: openAi.outputs.name
       AZURE_SEARCH_INDEX: searchIndexName
       AZURE_SEARCH_SERVICE: searchService.outputs.name
-      AZURE_OPENAI_CHATGPT_DEPLOYMENT: chatGptDeploymentName
-      AZURE_OPENAI_CHATGPT_MODEL: chatGptModelName
+      // AZURE_OPENAI_CHATGPT_DEPLOYMENT: chatGptDeploymentName
+      // AZURE_OPENAI_CHATGPT_MODEL: chatGptModelName
       AZURE_OPENAI_EMB_DEPLOYMENT: embeddingDeploymentName
       APPLICATIONINSIGHTS_CONNECTION_STRING: useApplicationInsights ? monitoring.outputs.applicationInsightsConnectionString : ''
     }
@@ -156,15 +164,27 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     }
     deployments: [
       {
-        name: chatGptDeploymentName
+        name: chatGptDeploymentNameV35
         model: {
           format: 'OpenAI'
-          name: chatGptModelName
-          version: chatGptModelVersion
+          name: chatGptModelNameV35
+          version: chatGptModelVersionV35
         }
         sku: {
           name: 'Standard'
-          capacity: chatGptDeploymentCapacity
+          capacity: chatGptDeploymentCapacityV35
+        }
+      }
+      {
+        name: chatGptDeploymentNameV4
+        model: {
+          format: 'OpenAI'
+          name: chatGptModelNameV4
+          version: chatGptModelVersionV4
+        }
+        sku: {
+          name: 'Standard'
+          capacity: chatGptDeploymentCapacityV4
         }
       }
       {
@@ -345,8 +365,8 @@ output AZURE_RESOURCE_GROUP string = resourceGroup.name
 
 output AZURE_OPENAI_SERVICE string = openAi.outputs.name
 output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
-output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
-output AZURE_OPENAI_CHATGPT_MODEL string = chatGptModelName
+// output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
+// output AZURE_OPENAI_CHATGPT_MODEL string = chatGptModelName
 output AZURE_OPENAI_EMB_DEPLOYMENT string = embeddingDeploymentName
 output AZURE_OPENAI_EMB_MODEL_NAME string = embeddingModelName
 

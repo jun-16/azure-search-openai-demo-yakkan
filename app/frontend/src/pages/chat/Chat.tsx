@@ -5,7 +5,7 @@ import readNDJSONStream from "ndjson-readablestream";
 
 import styles from "./Chat.module.css";
 
-import { chatApi, RetrievalMode, Approaches, AskResponse, ChatRequest, ChatTurn } from "../../api";
+import { chatApi, RetrievalMode, Approaches, AskResponse, ChatRequest, ChatTurn, ChatgptModel } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { ExampleList } from "../../components/Example";
@@ -24,6 +24,7 @@ const Chat = () => {
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
     const [excludeCategory, setExcludeCategory] = useState<string>("");
     const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
+    const [chatgptModel, setChatgptModel] = useState<ChatgptModel>(ChatgptModel.Gpt4);
 
     const lastQuestionRef = useRef<string>("");
     const chatMessageStreamEnd = useRef<HTMLDivElement | null>(null);
@@ -95,7 +96,8 @@ const Chat = () => {
                     retrievalMode: retrievalMode,
                     semanticRanker: useSemanticRanker,
                     semanticCaptions: useSemanticCaptions,
-                    suggestFollowupQuestions: useSuggestFollowupQuestions
+                    suggestFollowupQuestions: useSuggestFollowupQuestions,
+                    chatgptModel: chatgptModel,
                 }
             };
 
@@ -189,6 +191,10 @@ const Chat = () => {
         }
 
         setSelectedAnswer(index);
+    };
+
+    const onChatgptModelChange = (_ev: React.FormEvent<HTMLDivElement>, option?: IDropdownOption<ChatgptModel> | undefined, index?: number | undefined) => {
+        setChatgptModel(option?.data || ChatgptModel.Gpt4);
     };
 
     return (
@@ -344,6 +350,16 @@ const Chat = () => {
                         checked={shouldStream}
                         label="チャットの応答をストリームする"
                         onChange={onShouldStreamChange}
+                    />
+                    <Dropdown
+                        className={styles.chatSettingsSeparator}
+                        label="ChatGPTモデル"
+                        options={[
+                            { key: "gpt-35-turbo-16k", text: "gpt-3.5-turbo-16k", selected: chatgptModel == ChatgptModel.Gpt35, data: ChatgptModel.Gpt35 },
+                            { key: "gpt-4", text: "gpt-4", selected: chatgptModel == ChatgptModel.Gpt4, data: ChatgptModel.Gpt4 },
+                        ]}
+                        required
+                        onChange={onChatgptModelChange}
                     />
                 </Panel>
             </div>

@@ -79,12 +79,12 @@ A:保険金は請求完了日からその日を含めて30日以内に、当会�
     def __init__(self, search_client: SearchClient, openai_client: AsyncOpenAI, chatgpt_deployment: str, chatgpt_model: str, embedding_deployment: str, sourcepage_field: str, content_field: str):
         self.search_client = search_client
         self.openai_client = openai_client
-        self.chatgpt_deployment = chatgpt_deployment
-        self.chatgpt_model = chatgpt_model
+        # self.chatgpt_deployment = chatgpt_deployment
+        # self.chatgpt_model = chatgpt_model
         self.embedding_deployment = embedding_deployment
         self.sourcepage_field = sourcepage_field
         self.content_field = content_field
-        self.chatgpt_token_limit = get_token_limit(chatgpt_model)
+        # self.chatgpt_token_limit = get_token_limit(chatgpt_model)
 
     async def run_until_final_call(self, history: list[dict[str, str]], overrides: dict[str, Any], should_stream: bool = False) -> tuple[dict[str, Any], Coroutine[Any, Any, AsyncStream[ChatCompletionChunk]]]:
         has_text = overrides.get("retrieval_mode") in ["text", "hybrid", None]
@@ -93,6 +93,11 @@ A:保険金は請求完了日からその日を含めて30日以内に、当会�
         top = overrides.get("top") or 3
         exclude_category = overrides.get("exclude_category") or None
         filter = "category ne '{}'".format(exclude_category.replace("'", "''")) if exclude_category else None
+        chatgpt_deployment = overrides.get("chatgpt_model")
+        chatgpt_model = overrides.get("chatgpt_model")
+        chatgpt_token_limit = get_token_limit(chatgpt_model)
+        print("chatgpt_deployment:", chatgpt_deployment)
+        print("chatgpt_token_limit:", chatgpt_token_limit)
         
         # ===================================================================================
         # STEP 1: チャット履歴と最後の質問に基づいて、GPTで最適化されたキーワード検索クエリを生成します。
@@ -100,17 +105,19 @@ A:保険金は請求完了日からその日を含めて30日以内に、当会�
         user_q = 'Generate search query for: ' + history[-1]["user"]
         messages = self.get_messages_from_history(
             self.query_prompt_template,
-            self.chatgpt_model,
+            # self.chatgpt_model,
+            chatgpt_model,
             history,
             user_q,
             self.query_prompt_few_shots,
-            self.chatgpt_token_limit - len(user_q)
+            chatgpt_token_limit - len(user_q)
             )
         
         # ChatCompletion で検索クエリーを生成する
         chat_completion: ChatCompletion = await self.openai_client.chat.completions.create(
             messages=messages,
-            model=self.chatgpt_deployment if self.chatgpt_deployment else self.chatgpt_model,
+            # model=self.chatgpt_deployment if self.chatgpt_deployment else self.chatgpt_model,
+            model=chatgpt_deployment,
             temperature=0.0,
             max_tokens=100,
             n=1)
@@ -176,17 +183,19 @@ A:保険金は請求完了日からその日を含めて30日以内に、当会�
         
         messages = self.get_messages_from_history(
             system_message,
-            self.chatgpt_model,
+            # self.chatgpt_model,
+            chatgpt_model,
             history,
             history[-1]["user"]+ "\n\n " + content, # モデルは長いシステムメッセージをうまく扱えない。フォローアップ質問のプロンプトを解決するために、最新のユーザー会話にソースを移動する。
-            max_tokens=self.chatgpt_token_limit)
+            max_tokens=chatgpt_token_limit)
         msg_to_display = '\n\n'.join([str(message) for message in messages])
 
         extra_info = {"data_points": results, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
         
         # ChatCompletion で回答を生成する
         chat_coroutine = self.openai_client.chat.completions.create(
-            model=self.chatgpt_deployment if self.chatgpt_deployment else self.chatgpt_model,
+            # model=self.chatgpt_deployment if self.chatgpt_deployment else self.chatgpt_model,
+            model=chatgpt_deployment,
             messages=messages,
             temperature=overrides.get("temperature") or 0.0,
             max_tokens=1024,
@@ -196,6 +205,7 @@ A:保険金は請求完了日からその日を含めて30日以内に、当会�
         return (extra_info, chat_coroutine)
 
     async def run_without_streaming(self, history: list[dict[str, str]], overrides: dict[str, Any]) -> dict[str, Any]:
+        print("overrides:", overrides)
         extra_info, chat_coroutine = await self.run_until_final_call(history, overrides, should_stream=False)
         chat_content = (await chat_coroutine).choices[0].message.content
         extra_info["answer"] = chat_content
