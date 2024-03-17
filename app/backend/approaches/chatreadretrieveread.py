@@ -96,8 +96,6 @@ A:保険契約が解除される場合には、告知義務違反や通知義務
         chatgpt_deployment = overrides.get("chatgpt_model")
         chatgpt_model = overrides.get("chatgpt_model")
         chatgpt_token_limit = get_token_limit(chatgpt_model)
-        print("chatgpt_deployment:", chatgpt_deployment)
-        print("chatgpt_token_limit:", chatgpt_token_limit)
         
         # ===================================================================================
         # STEP 1: チャット履歴と最後の質問に基づいて、GPTで最適化されたキーワード検索クエリを生成します。
@@ -125,7 +123,6 @@ A:保険契約が解除される場合には、告知義務違反や通知義務
         query_text = chat_completion.choices[0].message.content
         if query_text.strip() == "0":
             query_text = history[-1]["user"] # より良いクエリを生成できなかった場合は、最後に入力されたクエリを使用する。
-        print("query_text:", query_text)
 
         # ================================================================================
         # STEP 2: GPT で生成したクエリを使用して、検索インデックスから関連するドキュメントを取得します。
@@ -206,7 +203,6 @@ A:保険契約が解除される場合には、告知義務違反や通知義務
         return (extra_info, chat_coroutine)
 
     async def run_without_streaming(self, history: list[dict[str, str]], overrides: dict[str, Any]) -> dict[str, Any]:
-        print("overrides:", overrides)
         extra_info, chat_coroutine = await self.run_until_final_call(history, overrides, should_stream=False)
         chat_content = (await chat_coroutine).choices[0].message.content
         extra_info["answer"] = chat_content

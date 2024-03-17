@@ -150,7 +150,9 @@ async def chat_stream():
         if not impl:
             return jsonify({"error": "unknown approach"}), 400
         response_generator = impl.run_with_streaming(request_json["history"], request_json.get("overrides", {}))
+        print("response_generator:", response_generator)
         response = await make_response(format_as_ndjson(response_generator))
+        print("response:", response)
         response.timeout = None # type: ignore
         return response
     except Exception as e:
