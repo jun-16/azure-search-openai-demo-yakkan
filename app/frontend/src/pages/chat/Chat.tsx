@@ -200,7 +200,7 @@ const Chat = () => {
     };
 
     const onInsuranceChange = (_ev: React.FormEvent<HTMLDivElement>, option?: IDropdownOption<Insurance> | undefined, index?: number | undefined) => {
-        setInsurance(option?.data || Insurance.TotalAssist);
+        setInsurance(option?.data || Insurance.ChoHoken);
         clearChat();
     };
     
@@ -222,8 +222,8 @@ const Chat = () => {
                                 className={styles.chatSettingsSeparator}
                                 // label="保険商品"
                                 options={[
-                                    { key: "total-assist", text: "トータルアシスト自動車保険", selected: insurance == Insurance.TotalAssist, data: Insurance.TotalAssist },
                                     { key: "cho-hoken", text: "トータルアシスト超保険", selected: insurance == Insurance.ChoHoken, data: Insurance.ChoHoken },
+                                    { key: "total-assist", text: "トータルアシスト自動車保険", selected: insurance == Insurance.TotalAssist, data: Insurance.TotalAssist },
                                     { key: "jishin", text: "地震保険", selected: insurance == Insurance.Jishin, data: Insurance.Jishin },
                                     { key: "e-quick", text: "EQuick保険", selected: insurance == Insurance.EQuick, data: Insurance.EQuick },
                                 ]}
